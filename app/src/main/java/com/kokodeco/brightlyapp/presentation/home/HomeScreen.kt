@@ -91,7 +91,7 @@ fun HomeScreen(
             readOnly = true,
             onValueChange = {},
             onSearch = {},
-            onClick = navigateToSearch
+            onClick = navigateToSearch,
         )
 
         Spacer(modifier = Modifier.height(MediumPadding))

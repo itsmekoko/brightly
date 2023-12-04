@@ -1,6 +1,5 @@
 package com.kokodeco.brightlyapp.presentation.core
 
-import android.content.res.Configuration
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -39,10 +38,9 @@ fun SearchBar(
     onValueChange: (String) -> Unit,
     onSearch: () -> Unit
 ) {
-    val interactionSource = remember {
-        MutableInteractionSource()
-    }
+    val interactionSource = remember { MutableInteractionSource() }
     val isClicked = interactionSource.collectIsPressedAsState().value
+
     LaunchedEffect(key1 = isClicked) {
         if (isClicked) {
             onClick?.invoke()
@@ -74,11 +72,10 @@ fun SearchBar(
             },
             shape = MaterialTheme.shapes.medium,
             colors = TextFieldDefaults.colors(
-                cursorColor = Color.Black, // Replace with desired cursor color
-                disabledIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                focusedContainerColor = Color.White, // Set the container color to white
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color.White,
+                cursorColor = Color.Black,
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -106,11 +103,14 @@ fun Modifier.searchBar(): Modifier = composed {
 }
 
 @Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun SearchBarPreview() {
     NewsAppTheme {
-        SearchBar(text = "", onValueChange = {}, readOnly = false) {
-        }
+        SearchBar(
+            text = "",
+            readOnly = false,
+            onValueChange = {},
+            onSearch = {}
+        )
     }
 }
