@@ -5,6 +5,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,12 @@ fun HomeScreen(
     navigateToSearch: () -> Unit,
     navigateToDetails: (Article) -> Unit
 ) {
+    val logoResId = if (isSystemInDarkTheme()) {
+        R.drawable.ic_logo_dark // Dark mode logo
+    } else {
+        R.drawable.ic_logo // Light mode logo
+    }
+
     val titles by remember {
         derivedStateOf {
             if (articles.itemCount > 10) {
@@ -67,7 +74,7 @@ fun HomeScreen(
             modifier = Modifier.padding(horizontal = Dimens.ExtraSmallPaddingTwo)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_logo),
+                painter = painterResource(id = logoResId),
                 contentDescription = null,
                 modifier = Modifier
                     .width(60.dp)
