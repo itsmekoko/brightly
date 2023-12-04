@@ -1,4 +1,4 @@
-echo "# Brightly - Your Quick News Companion
+# Brightly - Your Quick News Companion
 
 Welcome to Brightly, your go-to Android app for easily accessing short and impactful news from around the world. This app is designed to provide you with a streamlined experience, delivering the latest updates without overwhelming you with unnecessary information. Brightly employs modern technologies and follows best practices to ensure a smooth and efficient user experience.
 
