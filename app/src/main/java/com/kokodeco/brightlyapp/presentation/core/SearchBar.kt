@@ -74,7 +74,7 @@ fun SearchBar(
                 focusedContainerColor = Color.White, // Set the container color to white
                 unfocusedContainerColor = Color.White,
                 disabledContainerColor = Color.White,
-                cursorColor = Color.Black,
+                cursorColor = Color.Black
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
