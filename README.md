@@ -40,6 +40,6 @@ Make sure to check the \`build.gradle\` files for specific versions and updates.
 
 ## Contributing
 
-We welcome contributions from the community! If you have ideas for improvement, bug reports, or would like to add new features, please create an issue or submit a pull request." > README.md
+We welcome contributions from the community! If you have ideas for improvement, bug reports, or would like to add new features, please create an issue or submit a pull request.
 
 
