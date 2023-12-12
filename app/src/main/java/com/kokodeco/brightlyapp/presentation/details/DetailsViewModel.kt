@@ -24,16 +24,22 @@ class DetailsViewModel @Inject constructor(
     var sideEffect by mutableStateOf<UIComponent?>(null)
         private set
 
+    // State to track if the article is bookmarked
+    var isArticleBookmarked by mutableStateOf(false)
+        private set
+
+    fun checkBookmarkStatus(articleUrl: String) {
+        viewModelScope.launch {
+            val article = getSavedArticleUseCase(url = articleUrl)
+            isArticleBookmarked = article != null
+        }
+    }
+
     fun onEvent(event: DetailsEvent) {
         when (event) {
             is DetailsEvent.UpsertDeleteArticle -> {
                 viewModelScope.launch {
-                    val article = getSavedArticleUseCase(url = event.article.url)
-                    if (article == null) {
-                        upsertArticle(article = event.article)
-                    } else {
-                        deleteArticle(article = event.article)
-                    }
+                    handleArticleBookmarking(event.article)
                 }
             }
             is DetailsEvent.RemoveSideEffect -> {
@@ -42,13 +48,26 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
+    private suspend fun handleArticleBookmarking(article: Article) {
+        val existingArticle = getSavedArticleUseCase(url = article.url)
+        if (existingArticle == null) {
+            upsertArticle(article)
+        } else {
+            deleteArticle(article)
+        }
+    }
+
     private suspend fun deleteArticle(article: Article) {
         deleteArticleUseCase(article = article)
         sideEffect = UIComponent.Toast("Article deleted")
+        isArticleBookmarked = false // Update the bookmark state to reflect removal
     }
 
     private suspend fun upsertArticle(article: Article) {
-        upsertArticleUseCase(article = article)
-        sideEffect = UIComponent.Toast("Article Inserted")
+        upsertArticleUseCase(article = article) { result ->
+            sideEffect = result
+        }
+        isArticleBookmarked = true // Update the bookmark state to reflect addition
     }
 }
+

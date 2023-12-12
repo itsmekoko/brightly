@@ -1,15 +1,18 @@
 package com.kokodeco.brightlyapp.di
 
 import android.app.Application
+import android.content.Context
 import androidx.room.Room
 import com.kokodeco.brightlyapp.data.local.NewsDao
 import com.kokodeco.brightlyapp.data.local.NewsDatabase
 import com.kokodeco.brightlyapp.data.local.NewsTypeConvertor
 import com.kokodeco.brightlyapp.data.remote.BrightlyApi
 import com.kokodeco.brightlyapp.util.Constants.BASE_URL
+import com.kokodeco.brightlyapp.util.NetworkConnectivityChecker
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import retrofit2.Retrofit
@@ -49,4 +52,12 @@ object AppModule {
     fun provideNewsDao(
         newsDatabase: NewsDatabase
     ): NewsDao = newsDatabase.newsDao()
+
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityChecker(
+        @ApplicationContext context: Context
+    ): NetworkConnectivityChecker {
+        return NetworkConnectivityChecker(context)
+    }
 }

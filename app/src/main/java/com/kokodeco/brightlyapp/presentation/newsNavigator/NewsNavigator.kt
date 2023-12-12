@@ -17,7 +17,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.kokodeco.brightlyapp.R
 import com.kokodeco.brightlyapp.domain.model.Article
 import com.kokodeco.brightlyapp.presentation.bookmark.BookmarkScreen
@@ -57,8 +56,8 @@ fun NewsNavigator() {
     // Hide the bottom navigation when the user is in the details screen
     val isBottomBarVisible = remember(key1 = backStackState) {
         backStackState?.destination?.route == NavScreen.HomeScreen.navScreen ||
-            backStackState?.destination?.route == NavScreen.SearchScreen.navScreen ||
-            backStackState?.destination?.route == NavScreen.BookmarkScreen.navScreen
+                backStackState?.destination?.route == NavScreen.SearchScreen.navScreen ||
+                backStackState?.destination?.route == NavScreen.BookmarkScreen.navScreen
     }
 
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
@@ -72,12 +71,10 @@ fun NewsNavigator() {
                             navController = navController,
                             route = NavScreen.HomeScreen.navScreen
                         )
-
                         1 -> navigateToTab(
                             navController = navController,
                             route = NavScreen.SearchScreen.navScreen
                         )
-
                         2 -> navigateToTab(
                             navController = navController,
                             route = NavScreen.BookmarkScreen.navScreen
@@ -94,33 +91,22 @@ fun NewsNavigator() {
             modifier = Modifier.padding(bottom = bottomPadding)
         ) {
             composable(route = NavScreen.HomeScreen.navScreen) {
-                val viewModel: HomeViewModel = hiltViewModel()
-                val articles = viewModel.news.collectAsLazyPagingItems()
+                val homeViewModel: HomeViewModel = hiltViewModel()
                 HomeScreen(
-                    articles = articles,
-                    navigateToSearch = {
-                        navigateToTab(
-                            navController = navController,
-                            route = NavScreen.SearchScreen.navScreen
-                        )
-                    },
+                    viewModel = homeViewModel,
                     navigateToDetails = { article ->
-                        navigateToDetails(
-                            navController = navController,
-                            article = article
-                        )
-                    },
-                    event = viewModel::onEvent,
-                    state = viewModel.state.value
+                        navigateToDetails(navController, article)
+                    }
                 )
             }
+
             composable(route = NavScreen.SearchScreen.navScreen) {
-                val viewModel: SearchViewModel = hiltViewModel()
-                val state = viewModel.state.value
+                val searchViewModel: SearchViewModel = hiltViewModel()
+                val state = searchViewModel.state.value
                 OnBackClickStateSaver(navController = navController)
                 SearchScreen(
                     state = state,
-                    event = viewModel::onEvent,
+                    event = searchViewModel::onEvent,
                     navigateToDetails = { article ->
                         navigateToDetails(
                             navController = navController,
@@ -130,20 +116,20 @@ fun NewsNavigator() {
                 )
             }
             composable(route = NavScreen.DetailsScreen.navScreen) {
-                val viewModel: DetailsViewModel = hiltViewModel()
+                val detailsViewModel: DetailsViewModel = hiltViewModel()
                 navController.previousBackStackEntry?.savedStateHandle?.get<Article?>("article")
                     ?.let { article ->
                         DetailsScreen(
                             article = article,
-                            event = viewModel::onEvent,
+                            event = detailsViewModel::onEvent,
                             navigateUp = { navController.navigateUp() },
-                            sideEffect = viewModel.sideEffect
+                            sideEffect = detailsViewModel.sideEffect
                         )
                     }
             }
             composable(route = NavScreen.BookmarkScreen.navScreen) {
-                val viewModel: BookmarkViewModel = hiltViewModel()
-                val state = viewModel.state.value
+                val bookmarkViewModel: BookmarkViewModel = hiltViewModel()
+                val state = bookmarkViewModel.state.value
                 OnBackClickStateSaver(navController = navController)
                 BookmarkScreen(
                     state = state,

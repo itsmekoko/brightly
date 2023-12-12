@@ -21,6 +21,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.kokodeco.brightlyapp.R
@@ -28,8 +30,6 @@ import com.kokodeco.brightlyapp.domain.model.Article
 import com.kokodeco.brightlyapp.domain.model.Source
 import com.kokodeco.brightlyapp.presentation.details.components.DetailsTopBar
 import com.kokodeco.brightlyapp.ui.theme.NewsAppTheme
-import com.kokodeco.brightlyapp.util.Dimens.ArticleImageHeight
-import com.kokodeco.brightlyapp.util.Dimens.MediumPadding
 import com.kokodeco.brightlyapp.util.UIComponent
 
 @Composable
@@ -37,18 +37,25 @@ fun DetailsScreen(
     article: Article,
     event: (DetailsEvent) -> Unit,
     sideEffect: UIComponent?,
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    viewModel: DetailsViewModel = hiltViewModel() // Inject ViewModel
 ) {
     val context = LocalContext.current
 
+    LaunchedEffect(key1 = article) {
+        viewModel.checkBookmarkStatus(article.url)
+    }
+
+    val isBookmarked = viewModel.isArticleBookmarked
     LaunchedEffect(key1 = sideEffect) {
         sideEffect?.let {
-            when (sideEffect) {
+            when (it) {
                 is UIComponent.Toast -> {
-                    Toast.makeText(context, sideEffect.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
                     event(DetailsEvent.RemoveSideEffect)
                 }
-                else -> Unit
+
+                else -> {}
             }
         }
     }
@@ -59,21 +66,18 @@ fun DetailsScreen(
             .statusBarsPadding()
     ) {
         DetailsTopBar(
+            isBookmarked = isBookmarked,
             onBrowsingClick = {
                 Intent(Intent.ACTION_VIEW).also {
                     it.data = Uri.parse(article.url)
-                    if (it.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(it)
-                    }
+                    context.startActivity(it)
                 }
             },
             onShareClick = {
                 Intent(Intent.ACTION_SEND).also {
                     it.putExtra(Intent.EXTRA_TEXT, article.url)
                     it.type = "text/plain"
-                    if (it.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(it)
-                    }
+                    context.startActivity(Intent.createChooser(it, null))
                 }
             },
             onBookMarkClick = {
@@ -84,38 +88,30 @@ fun DetailsScreen(
 
         LazyColumn(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(
-                start = MediumPadding,
-                end = MediumPadding,
-                top = MediumPadding
-            )
+            contentPadding = PaddingValues(all = 16.dp)
         ) {
             item {
                 AsyncImage(
-                    model = ImageRequest.Builder(context = context).data(article.urlToImage)
-                        .build(),
+                    model = ImageRequest.Builder(context).data(article.urlToImage).build(),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(ArticleImageHeight)
+                        .height(200.dp)
                         .clip(MaterialTheme.shapes.medium),
                     contentScale = ContentScale.Crop
                 )
-                Spacer(modifier = Modifier.height(MediumPadding))
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = article.title,
                     style = MaterialTheme.typography.displaySmall,
-                    color = colorResource(
-                        id = R.color.text_title
-                    )
+                    color = colorResource(id = R.color.text_title)
                 )
                 Text(
                     text = article.content,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = colorResource(
-                        id = R.color.body
-                    )
+                    color = colorResource(id = R.color.body)
                 )
+
             }
         }
     }
@@ -128,20 +124,18 @@ fun DetailsScreenPreview() {
         DetailsScreen(
             article = Article(
                 author = "",
-                title = "Coinbase says Apple blocked their app. - CryptoSaurus",
-                description = "Coinbase says Apple blocked their app. - CryptoSaurus",
-                content = "Coinbase, apple, coinbase, appple[+1131 chars]",
-                publishedAt = "2023-09-19T23:25:33Z",
-                source = Source(
-                    id = "",
-                    name = "bbc"
-                ),
-                url = "",
-                urlToImage = ""
+                title = "Sample Article Title",
+                description = "Sample Article Description",
+                content = "Sample Article Content",
+                publishedAt = "2023-01-01T00:00:00Z",
+                source = Source(id = "1", name = "Sample Source"),
+                url = "https://example.com",
+                urlToImage = "https://example.com/image.jpg",
+                isBookmarked = false // Added for the preview
             ),
             event = {},
-            sideEffect = null
-        ) {
-        }
+            sideEffect = null,
+            navigateUp = {}
+        )
     }
 }

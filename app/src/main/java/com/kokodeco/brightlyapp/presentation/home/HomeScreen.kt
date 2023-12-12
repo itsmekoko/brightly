@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,40 +17,43 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.kokodeco.brightlyapp.R
 import com.kokodeco.brightlyapp.domain.model.Article
 import com.kokodeco.brightlyapp.presentation.core.ArticlesList
-import com.kokodeco.brightlyapp.presentation.core.SearchBar
 import com.kokodeco.brightlyapp.util.Dimens
 import com.kokodeco.brightlyapp.util.Dimens.MediumPadding
 import kotlinx.coroutines.delay
 
 @Composable
 fun HomeScreen(
-    articles: LazyPagingItems<Article>,
-    state: HomeState,
-    event: (HomeEvent) -> Unit,
-    navigateToSearch: () -> Unit,
+    viewModel: HomeViewModel,
     navigateToDetails: (Article) -> Unit
 ) {
+    val articles = viewModel.news.collectAsLazyPagingItems()
+    val isNetworkAvailable = viewModel.isNetworkAvailable.collectAsState().value
+
     val logoResId = if (isSystemInDarkTheme()) {
-        R.drawable.ic_logo_dark // Dark mode logo
+        R.drawable.ic_logo_dark
     } else {
-        R.drawable.ic_logo // Light mode logo
+        R.drawable.ic_logo
     }
 
     val titles by remember {
@@ -63,6 +67,9 @@ fun HomeScreen(
             }
         }
     }
+
+    val scrollState = rememberScrollState(initial = viewModel.state.value.scrollValue)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,20 +97,31 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(MediumPadding))
 
-        SearchBar(
-            modifier = Modifier
-                .padding(horizontal = MediumPadding)
-                .fillMaxWidth(),
-            text = "",
-            readOnly = true,
-            onValueChange = {},
-            onSearch = {},
-            onClick = navigateToSearch
-        )
-
-        Spacer(modifier = Modifier.height(MediumPadding))
-
-        val scrollState = rememberScrollState(initial = state.scrollValue)
+        if (!isNetworkAvailable && articles.itemSnapshotList.items.isEmpty()) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = MediumPadding)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No internet connection available. Please retry!",
+                        color = Color.Red,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(MediumPadding))
+                    Button(
+                        onClick = { viewModel.reloadNews() },
+                        colors = ButtonDefaults.buttonColors(Color.DarkGray)
+                    ) {
+                        Text("Reload", color = Color.White)
+                    }
+                }
+            }
+        }
 
         Text(
             text = titles,
@@ -111,27 +129,30 @@ fun HomeScreen(
                 .fillMaxWidth()
                 .padding(start = MediumPadding)
                 .horizontalScroll(scrollState, enabled = false),
-            fontSize = 12.sp,
-            color = colorResource(id = R.color.placeholder)
+            fontSize = 16.sp,
+            color = if (isSystemInDarkTheme()) {
+                colorResource(id = R.color.placeholder)
+            } else {
+                Color.Black
+            }
         )
 
-        // Update the maxScrollingValue
         LaunchedEffect(key1 = scrollState.maxValue) {
-            event(HomeEvent.UpdateMaxScrollingValue(scrollState.maxValue))
+            viewModel.onEvent(HomeEvent.UpdateMaxScrollingValue(scrollState.maxValue))
         }
-        // Save the state of the scrolling position
+
         LaunchedEffect(key1 = scrollState.value) {
-            event(HomeEvent.UpdateScrollValue(scrollState.value))
+            viewModel.onEvent(HomeEvent.UpdateScrollValue(scrollState.value))
         }
-        // Animate the scrolling
-        LaunchedEffect(key1 = state.maxScrollingValue) {
+
+        LaunchedEffect(key1 = viewModel.state.value.maxScrollingValue) {
             delay(500)
-            if (state.maxScrollingValue > 0) {
+            if (viewModel.state.value.maxScrollingValue > 0) {
                 scrollState.animateScrollTo(
-                    value = state.maxScrollingValue,
+                    value = viewModel.state.value.maxScrollingValue,
                     animationSpec = infiniteRepeatable(
                         tween(
-                            durationMillis = (state.maxScrollingValue - state.scrollValue) * 50_000 / state.maxScrollingValue,
+                            durationMillis = (viewModel.state.value.maxScrollingValue - viewModel.state.value.scrollValue) * 50_000 / viewModel.state.value.maxScrollingValue,
                             easing = LinearEasing,
                             delayMillis = 1000
                         )
