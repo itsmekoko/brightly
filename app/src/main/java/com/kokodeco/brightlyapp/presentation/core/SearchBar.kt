@@ -10,17 +10,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,6 +46,10 @@ fun SearchBar(
         }
     }
 
+    val backgroundColor = if (isSystemInDarkTheme()) Color.Black else Color.White
+    val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+    val contentColor = if (isSystemInDarkTheme()) Color.White else LocalContentColor.current
+
     Box(modifier = modifier) {
         TextField(
             modifier = Modifier
@@ -59,22 +63,24 @@ fun SearchBar(
                     painter = painterResource(id = R.drawable.ic_search),
                     contentDescription = null,
                     modifier = Modifier.size(RegularIconSize),
-                    tint = colorResource(id = R.color.body)
+                    tint = contentColor
                 )
             },
             placeholder = {
                 Text(
                     text = "Search",
                     style = MaterialTheme.typography.bodySmall,
-                    color = colorResource(id = R.color.placeholder)
+                    color = contentColor
                 )
             },
             shape = MaterialTheme.shapes.medium,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.White, // Set the container color to white
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White,
-                cursorColor = Color.Black
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = backgroundColor,
+                unfocusedContainerColor = backgroundColor,
+                disabledContainerColor = backgroundColor,
+
+                cursorColor = textColor,
+                // Adjust other colors as needed
             ),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -83,7 +89,7 @@ fun SearchBar(
                     onSearch()
                 }
             ),
-            textStyle = MaterialTheme.typography.bodySmall,
+            textStyle = MaterialTheme.typography.bodySmall.copy(color = textColor),
             interactionSource = interactionSource
         )
     }
